@@ -94,7 +94,7 @@ def jogar(tabuleiro: List[List[str]], jogador_atual: str):
 
     if not jogada_valida(tabuleiro, numero):
         print("jogada inválida... Tente novamente.")
-        return tabuleiro, jogador_atual
+        
 
     realizar_jogada(tabuleiro, numero, jogador_atual)
     #jogador_atual = trocar_jogador(jogador_atual)
