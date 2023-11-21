@@ -1,0 +1,244 @@
+CREATE TABLE pessoa (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(200),
+    pais_origem VARCHAR(50),
+    email VARCHAR(200) UNIQUE,
+    numero_identificador INTEGER UNIQUE,
+    data_nascimento DATE
+);
+
+CREATE TABLE categoria_veiculos (
+    id SERIAL PRIMARY KEY,
+    descricao TEXT,
+    id_carro INTEGER UNIQUE
+);
+
+CREATE TABLE transportadora (
+    id SERIAL PRIMARY KEY,
+    cnpj INTEGER UNIQUE,
+    nome VARCHAR(300),
+    usuario_transp INTEGER UNIQUE REFERENCES pessoa(id)
+);
+
+CREATE TABLE veiculos (
+    id SERIAL PRIMARY KEY,
+    placa VARCHAR(20) UNIQUE,
+    pais_origem VARCHAR(40),
+    ano INTEGER,
+    modelo VARCHAR(100),
+    cnpj_transportadora INTEGER REFERENCES transportadora(cnpj),
+    categoria_veiculo INTEGER
+);
+
+ALTER TABLE veiculos
+ADD CONSTRAINT fk_categoria_veiculos
+FOREIGN KEY (categoria_veiculo) REFERENCES categoria_veiculos(id);
+
+CREATE TABLE transacao (
+    id SERIAL PRIMARY KEY,
+    data DATE,
+    descricao TEXT,
+    id_usuario INTEGER REFERENCES pessoa(id),
+    numero_identificador INTEGER UNIQUE DEFAULT 40,
+    cnh INTEGER UNIQUE,
+    registro_veiculo INTEGER UNIQUE,
+    licenca_veiculo INTEGER UNIQUE,
+    nota_fiscal TEXT,
+    impostos FLOAT,
+	veiculo_envolvido INTEGER UNIQUE REFERENCES veiculos(id)
+);
+
+
+--povoamento
+
+-- Inserção de dados na tabela pessoa
+INSERT INTO pessoa (nome, pais_origem, email, numero_identificador, data_nascimento) VALUES
+('João Silva', 'Brasil', 'joao@email.com', 123456789, '1990-01-01'),
+('Maria Oliveira', 'Brasil', 'maria@email.com', 987654321, '1985-05-15'),
+('Carlos Pereira', 'Brasil', 'carlos@email.com', 111222333, '1980-12-10'),
+('Ana Souza', 'Brasil', 'ana@email.com', 444555666, '1995-08-20'),
+('Pedro Santos', 'Portugal', 'pedro@email.com', 777888999, '1988-04-25'),
+('Lúcia Rocha', 'Brasil', 'lucia@email.com', 888777666, '1992-11-30'),
+('Rafaela Lima', 'Alemanha', 'rafaela@email.com', 555444333, '1982-07-05'),
+('Fernando Costa', 'Portugal', 'fernando@email.com', 999888777, '1977-03-15');
+
+
+-- Inserção de dados na tabela categoria_veiculos
+INSERT INTO categoria_veiculos (descricao, id_carro) VALUES
+('Sedan', 1),
+('SUV', 2),
+('Caminhão', 3),
+('Coupé', 4),
+('Van', 5),
+('Caminhonete', 6),
+('Hatchback', 7),
+('Moto', 8);
+
+-- Inserção de dados na tabela transportadora
+INSERT INTO transportadora (cnpj, nome, usuario_transp) VALUES
+(1234, 'Transportadora A', 1),
+(9876, 'Transportadora B', 2),
+(1111, 'Transportadora C', 3),
+(4444, 'Transportadora D', 4),
+(7777, 'Transportadora E', 5),
+(8888, 'Transportadora F', 6),
+(5555, 'Transportadora G', 7),
+(9999, 'Transportadora H', 8);
+
+-- Inserção de dados na tabela veiculos
+INSERT INTO veiculos (placa, pais_origem, ano, modelo, cnpj_transportadora, categoria_veiculo) VALUES
+('ABC123', 'Brasil', 2020, 'Civic', 1234, 1),
+('XYZ987', 'EUA', 2019, 'CRV', 9876, 2),
+('QWE456', 'Brasil', 2022, 'Scania', 1111, 3),
+('RTY789', 'Alemanha', 2021, 'BMW M4', 4444, 4),
+('UIO321', 'Brasil', 2020, 'Mercedes Sprinter', 7777, 5),
+('JKL654', 'EUA', 2023, 'Ford Ranger', 8888, 6),
+('MNB987', 'Brasil', 2022, 'Gol', 5555, 7),
+('POI654', 'Japão', 2021, 'Yamaha MT-07', 9999, 8),
+('POU654', 'Japão', 2021, 'Hornet', 9999, 8);
+
+-- Inserção de dados na tabela transacao
+INSERT INTO transacao (data, descricao, id_usuario, numero_identificador, cnh, 
+					   registro_veiculo, licenca_veiculo, nota_fiscal, impostos, veiculo_envolvido) VALUES
+--('2023-01-15', 'Compra de Civic', 1, 12345, 67890, 54321, 98765, 'NF123', 1500.50, 1),
+--('2023-02-20', 'Compra de CRV', 2, 54321, 98765, NULL, NULL, 'NF456', 800.75, 2),
+--('2023-03-10', 'Compra de Scania', 3, 67890, NULL, 12345, NULL, 'NF789', 300.20,3 ),
+--('2023-04-05', 'Compra de BMW M4', 4, 98765, 54321, NULL, 67890, 'NF987', 1200.00,4 ),
+--('2023-05-25', 'Mercedes Sprinter', 5, 11111, NULL, NULL, NULL, 'NF654', 250.30, 5),
+--('2023-06-30', 'compra de Ford Ranger', 6, 22222, 33333, 44444, NULL, 'NF321', 1800.90, 6),
+--('2023-07-05', 'Compra de Hornet', 7, 33333, NULL, NULL, NULL, 'NF000', 500.60, 9),
+('2023-08-15', 'Compra de Gol', 8, 44444, NULL, NULL, NULL, 'NF111', 700.25, 7)
+
+select * from veiculos;
+select * from categoria_veiculos;
+select * from transacao;
+--consultas
+-- Consultas de Junção:
+
+--Consulta 1: Dados de todas as transações, juntamente com os dados do proprietário do veículo envolvido na transação
+SELECT
+  t.id,
+  t.data,
+  t.descricao,
+  t.id_usuario,
+  u.nome AS nome_proprietario,
+  t.numero_identificador,
+  t.cnh,
+  t.registro_veiculo,
+  t.licenca_veiculo,
+  t.nota_fiscal,
+  t.impostos,
+  t.veiculo_envolvido
+FROM
+  transacao t
+INNER JOIN
+  pessoa u
+ON
+  t.id_usuario = u.id
+
+
+-- Consulta 2: Número de Veículos por Categoria	
+SELECT categoria_veiculos.descricao, COUNT(veiculos.id) AS total_veiculos
+FROM categoria_veiculos
+LEFT JOIN veiculos ON categoria_veiculos.id = veiculos.categoria_veiculo
+GROUP BY categoria_veiculos.id;
+
+-- Consulta 3: Pessoas que Já Realizaram compra de uma Hornet
+SELECT DISTINCT *
+FROM pessoa
+INNER JOIN transacao ON pessoa.id = transacao.id_usuario
+WHERE transacao.descricao = 'Compra de Hornet';
+
+-- Consulta 4: Veículos de Transportadoras com CNPJ Terminando em 88
+SELECT veiculos.*
+FROM veiculos
+INNER JOIN transportadora ON veiculos.cnpj_transportadora = transportadora.cnpj
+WHERE transportadora.cnpj % 100 = 88;
+
+-- Consulta 5: Transportadoras com Mais de 1 Veículos Registrados
+SELECT transportadora.*, COUNT(veiculos.id) AS total_veiculos
+FROM transportadora
+LEFT JOIN veiculos ON transportadora.cnpj = veiculos.cnpj_transportadora
+GROUP BY transportadora.id
+HAVING COUNT(veiculos.id) > 1;
+
+-- Consultas de Agregação:
+
+-- Consulta 6: Número de Veículos por Categoria
+SELECT categoria_veiculos.descricao, COUNT(veiculos.id) AS total_veiculos
+FROM categoria_veiculos
+LEFT JOIN veiculos ON categoria_veiculos.id = veiculos.categoria_veiculo
+GROUP BY categoria_veiculos.id;
+
+-- Consulta 7: Média de Impostos Pagos em Transações
+SELECT AVG(impostos) AS media_impostos FROM transacao;
+
+-- Consulta  8: Soma Total de Impostos Pagos Agrupados por Ano de Transação
+SELECT EXTRACT(YEAR FROM data) AS ano_transacao, SUM(impostos) AS total_impostos
+FROM transacao
+GROUP BY EXTRACT(YEAR FROM data)
+ORDER BY ano_transacao;
+
+-- Consulta 9: Quantidade de Pessoas por País de Origem
+SELECT pais_origem, COUNT(id) AS total_pessoas
+FROM pessoa
+GROUP BY pais_origem;
+
+-- Consulta 10: Transportadoras com Mais de 3 Veículos Registrados
+SELECT transportadora.*, COUNT(veiculos.id) AS total_veiculos
+FROM transportadora
+LEFT JOIN veiculos ON transportadora.cnpj = veiculos.cnpj_transportadora
+GROUP BY transportadora.id
+HAVING COUNT(veiculos.id) > 1;
+
+-- Consultas de Ordenação:
+
+-- Consulta 11: Veículos Registrados Antes de 2020 Ordenados por Ano
+SELECT * FROM veiculos
+WHERE ano < 2020
+ORDER BY ano DESC;
+
+-- Consulta 12: Pessoas sem Veículos Registrados
+SELECT pessoa.*
+FROM pessoa
+LEFT JOIN veiculos ON pessoa.id = veiculos.cnpj_transportadora
+WHERE veiculos.id IS NULL;
+
+-- Outras Consultas:
+
+-- Consulta 13: Seleção de Pessoas Brasileiras Nascidas após 1990
+SELECT * FROM pessoa
+WHERE pais_origem = 'Brasil' AND data_nascimento > '1990-01-01';
+
+-- Consulta 14: Veículos da Categoria SUV Fabricados nos EUA
+SELECT * FROM veiculos
+WHERE categoria_veiculo = 2 AND pais_origem = 'EUA';
+
+-- Consulta 16: Pessoas com Números Identificadores Ímpares
+SELECT * FROM pessoa
+WHERE numero_identificador % 2 <> 0;
+
+-- Consulta 17: Transportadoras com Nome que Começa com "Transportadora"
+SELECT * FROM transportadora
+WHERE nome LIKE 'Transportadora%';
+
+-- Consulta 18: Veículos Fabricados no Brasil ou nos EUA
+SELECT * FROM veiculos
+WHERE pais_origem IN ('Brasil', 'EUA');
+
+-- Consulta 19: Pessoas que Nasceram em Janeiro ou Dezembro
+SELECT * FROM pessoa
+WHERE EXTRACT(MONTH FROM data_nascimento) IN (1, 12);
+
+-- Consulta 20: Veículos Fabricados Após 2020 com Impostos Acima de 1000
+SELECT placa, modelo,impostos ano FROM veiculos, transacao
+WHERE ano > 2020 AND transacao.impostos > 1000;
+
+-- Consulta 21: Quantidade de Transações por Descrição
+SELECT descricao, COUNT(id) AS total_transacoes
+FROM transacao
+GROUP BY descricao;
+
+-- Consulta 20: Veículos com Modelos que Contêm a Letra 'R'
+SELECT * FROM veiculos
+WHERE modelo LIKE '%R%';
